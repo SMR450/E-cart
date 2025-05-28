@@ -1,0 +1,102 @@
+---
+layout: default
+title: Cart & Checkout
+permalink: /cart/
+---
+
+<div class="container">
+  <h1 class="mb-4">Your Shopping Cart</h1>
+  
+  <div class="row">
+    <div class="col-md-8">
+      <div class="card mb-4">
+        <div class="card-body">
+          <div class="cart-items">
+            <!-- Cart items will be dynamically inserted here via JavaScript -->
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-header">
+          <h5>Order Summary</h5>
+        </div>
+        <div class="card-body">
+          <div class="d-flex justify-content-between mb-3">
+            <span>Subtotal:</span>
+            <span class="cart-total">$0.00</span>
+          </div>
+          
+          <div class="mb-3">
+            <label for="shipping-method" class="form-label">Shipping Method:</label>
+            <select id="shipping-method" class="form-select">
+              {% for method in site.data.shipping %}
+                <option value="{{ method.id }}" data-price="{{ method.price }}">
+                  {{ method.name }} - ${{ method.price }}
+                </option>
+              {% endfor %}
+            </select>
+            <small class="text-muted shipping-description"></small>
+          </div>
+          
+          <hr>
+          
+          <div class="d-flex justify-content-between mb-3">
+            <strong>Total:</strong>
+            <strong class="order-total">$0.00</strong>
+          </div>
+          
+          <div class="checkout-button" style="display: none;">
+            <div id="paypal-button-container"></div>
+          </div>
+          
+          <div id="payment-success" style="display: none;" class="alert alert-success">
+            <h5>Thank you for your order!</h5>
+            <p>Your payment was successful and your order has been placed.</p>
+            <p>We'll send you an email confirmation with tracking details once your order ships.</p>
+            <a href="{{ '/' | relative_url }}" class="btn btn-primary">Continue Shopping</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PayPal SDK -->
+<script src="https://www.paypal.com/sdk/js?client-id=sb&currency=USD"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Update shipping description when shipping method changes
+    const shippingSelect = document.getElementById('shipping-method');
+    const shippingDescription = document.querySelector('.shipping-description');
+    
+    function updateShippingDescription() {
+      const selectedOption = shippingSelect.options[shippingSelect.selectedIndex];
+      const shippingId = selectedOption.value;
+      
+      {% for method in site.data.shipping %}
+        if (shippingId === '{{ method.id }}') {
+          shippingDescription.textContent = '{{ method.description }}';
+        }
+      {% endfor %}
+      
+      // Update order total
+      updateOrderTotal();
+    }
+    
+    function updateOrderTotal() {
+      const cartTotal = parseFloat(document.querySelector('.cart-total').textContent.replace('$', ''));
+      const shippingPrice = parseFloat(shippingSelect.options[shippingSelect.selectedIndex].getAttribute('data-price'));
+      const orderTotal = cartTotal + shippingPrice;
+      
+      document.querySelector('.order-total').textContent = '$' + orderTotal.toFixed(2);
+    }
+    
+    shippingSelect.addEventListener('change', updateShippingDescription);
+    
+    // Initialize shipping description
+    updateShippingDescription();
+  });
+</script>
